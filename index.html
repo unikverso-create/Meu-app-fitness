@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descanso Treino - Mandinho Asf</title>
+    <!-- Configuração essencial para funcionar como app fora do navegador -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Descanso%20Treino%20-%20Mandinho%20Asf%22%2C%22short_name%22%3A%22Treino%20Asf%22%2C%22start_url%22%3A%22index.html%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23121212%22%2C%22theme_color%22%3A%22%234CAF50%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20192%20192%27%253E%253Crect%20width%3D%27192%27%20height%3D%27192%27%20fill%3D%27%25234CAF50%27%2F%253E%253Ctext%20x%3D%2796%27%20y%3D%27110%27%20font-size%3D%2790%27%20fill%3D%27white%27%20text-anchor%3D%27middle%27%3E%25F0%259F%258F%2585%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Treino Asf">
+    <meta name="theme-color" content="#4CAF50">
+    
+    <style>
+        * { margin: 0; padding: 0; font-family: Arial, sans-serif; box-sizing: border-box; }
+        body { 
+            background: #121212; color: white; min-height: 100vh; 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 12px 15px 18px 15px; text-align: center;
+        }
+
+        .cabecalho { margin-bottom: 5px; }
+        .assinatura-topo { font-size: 1.1rem; color: #999; font-weight: 500; }
+
+        .conteudo { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+        
+        .frase-final {
+            font-size: 1.8rem; font-weight: 900; color: #ffd700;
+            text-shadow: 0 0 8px #ffd700, 0 0 15px #ffa500;
+            margin-bottom: 12px; display: none;
+            animation: brilho 0.8s infinite alternate;
+        }
+        @keyframes brilho { from { opacity: 0.8; } to { opacity: 1; } }
+
+        .serie { 
+            font-size: 2.1rem; font-weight: bold; margin-bottom: 20px; 
+            padding: 15px 20px; border-radius: 16px; background: #1e1e1e; width: 90%; max-width: 400px;
+        }
+        .ultima { background: #d32f2f; animation: alerta 1s infinite; }
+        .concluido { background: #2e7d32; color: white; }
+        @keyframes alerta {
+            0% { transform: scale(1); box-shadow: 0 0 10px #d32f2f; }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px #d32f2f; }
+            100% { transform: scale(1); box-shadow: 0 0 10px #d32f2f; }
+        }
+
+        .caixa-cronometro {
+            position: relative; width: 220px; height: 220px;
+            margin: 8px auto 12px auto;
+        }
+        .svg-circulo { position: absolute; inset: 0; transform: rotate(-90deg); }
+        .circulo-fundo { fill: none; stroke: #424242; stroke-width: 10; }
+        .circulo-progresso {
+            fill: none; stroke: #4CAF50; stroke-width: 10;
+            stroke-linecap: butt; stroke-dasharray: 691.15;
+            stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear;
+        }
+        .cronometro { 
+            font-size: 4.2rem; font-weight: bold; color: #4CAF50;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 2;
+        }
+
+        .info { font-size: 1rem; color: #bbb; margin-bottom: 18px; max-width: 350px; }
+        
+        .botoes { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+        .botoes-linha { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        
+        button { 
+            padding: 12px 20px; font-size: 1rem; border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: bold;
+        }
+        .iniciar { background: #4caf50; color: white; flex: 1; min-width: 140px; }
+        .reiniciar { background: #ff9800; color: white; flex: 1; min-width: 140px; }
+        .config { background: #1976d2; color: white; flex: 1; min-width: 140px; font-size: 0.95rem; }
+        .voz { 
+            background: #7b1fa2; color: white; width: 100%; 
+            font-size: 1rem; padding: 14px;
+        }
+        .voz.desligada { background: #555; }
+        .fechar { background: #c62828; color: white; width: 100%; margin-top: 5px; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .rodape { margin-top: 8px; }
+        .contato { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 1.05rem; color: #25d366; font-weight: 500; }
+        .whatsapp-icon { width: 20px; height: 20px; fill: #25d366; }
+
+        /* CAIXAS DE DIÁLOGO PERSONALIZADAS */
+        .fundo-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); display: none;
+            align-items: center; justify-content: center; z-index: 999;
+        }
+        .caixa-modal {
+            background: #222; padding: 24px 20px; border-radius: 20px;
+            width: 85%; max-width: 340px; box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        }
+        .caixa-modal h3 { color: #fff; margin-bottom: 12px; font-size: 1.2rem; }
+        .caixa-modal p { color: #ccc; margin-bottom: 15px; font-size: 1rem; }
+        .caixa-modal input {
+            width: 100%; padding: 12px; border-radius: 12px; border: none;
+            font-size: 1rem; text-align: center; margin-bottom: 18px;
+            background: #333; color: white;
+        }
+        .caixa-botoes { display: flex; gap: 12px; justify-content: center; }
+        .btn-modal { padding: 12px 24px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-cancelar { background: #444; color: white; }
+        .btn-confirmar { background: #4CAF50; color: white; }
+        .btn-ok { background: #1976d2; color: white; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <!-- CAIXAS DE DIÁLOGO -->
+    <div class="fundo-modal" id="modalPrompt">
+        <div class="caixa-modal">
+            <h3 id="tituloPrompt"></h3>
+            <p id="textoPrompt"></p>
+            <input type="text" id="campoValor">
+            <div class="caixa-botoes">
+                <button class="btn-modal btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                <button class="btn-modal btn-confirmar" onclick="confirmarPrompt()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fundo-modal" id="modalAlerta">
+        <div class="caixa-modal">
+            <p id="textoAlerta"></p>
+            <button class="btn-modal btn-ok" onclick="fecharAlerta()">OK</button>
+        </div>
+    </div>
+
+    <div class="cabecalho">
+        <div class="assinatura-topo">by Mandinho Asf</div>
+    </div>
+
+    <div class="conteudo">
+        <div class="frase-final" id="fraseFinal">MAIS UM TREINO PAGO!</div>
+
+        <div class="serie" id="textoSerie">1ª serie</div>
+        
+        <div class="caixa-cronometro">
+            <svg class="svg-circulo" viewBox="0 0 240 240">
+                <circle cx="120" cy="120" r="110" class="circulo-fundo"></circle>
+                <circle cx="120" cy="120" r="110" class="circulo-progresso" id="circulo"></circle>
+            </svg>
+            <div class="cronometro" id="cronometro">01:00</div>
+        </div>
+
+        <div class="info" id="infoAcao">Clique para começar o descanso</div>
+        
+        <div class="botoes">
+            <!-- BOTÃO VOZ CENTRALIZADO ACIMA DE TODOS -->
+            <button class="voz" id="btnVoz" onclick="alternarVoz()">🔊 Voz Ligada</button>
+
+            <div class="botoes-linha">
+                <button class="config" onclick="escolherSeries()">Quant. Series</button>
+                <button class="config" onclick="escolherTempo()">Tempo (seg)</button>
+            </div>
+
+            <div class="botoes-linha">
+                <button class="iniciar" id="btnIniciar" onclick="iniciarDescanso()">Iniciar Descanso</button>
+                <button class="reiniciar" onclick="reiniciarTudo()">Reiniciar</button>
+            </div>
+
+            <button class="fechar" onclick="fecharAplicativo()">❌ Fechar Aplicativo</button>
+        </div>
+    </div>
+
+    <div class="rodape">
+        <div class="contato">
+            <svg class="whatsapp-icon" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.395 0 .16 5.235.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.654 0 11.89-5.235 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            @mandinhoasf
+        </div>
+    </div>
+
+    <script>
+        let serieAtual = 1;
+        let totalSeries = 4;
+        let tempoRestante = 60;
+        let tempoTotal = 60;
+        const circunferencia = 691.15;
+        let temporizador;
+        let temporizadorFrase;
+        let rodando = false;
+        let vozAtiva = true; // Começa LIGADA por padrão
+        let valorPadraoModal;
+        let funcaoConfirmar;
+        const circulo = document.getElementById('circulo');
+        const fraseFinal = document.getElementById('fraseFinal');
+
+
+        // --- ALTERNAR VOZ ---
+        function alternarVoz() {
+            const botao = document.getElementById('btnVoz');
+            vozAtiva = !vozAtiva;
+            
+            if (vozAtiva) {
+                botao.textContent = '🔊 Voz Ligada';
+                botao.classList.remove('desligada');
+            } else {
+                botao.textContent = '🔇 Voz Desligada';
+                botao.classList.add('desligada');
+            }
+        }
+
+
+        // --- FECHAR APLICATIVO ---
+        function fecharAplicativo() {
+            // Para tudo antes de sair
+            clearInterval(temporizador);
+            clearTimeout(temporizadorFrase);
+            rodando = false;
+            
+            // Funciona como app instalado: fecha direto, volta para tela inicial
+            if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+                window.close();
+            } else {
+                // Se aberto no navegador, avisa que só funciona direto quando instalado
+                if (confirm('Para fechar direto para a tela inicial, instale o aplicativo!\nDeseja instalar agora?')) {
+                    // Apenas orienta a instalação
+                }
+            }
+        }
+
+
+        // --- FUNÇÕES DAS CAIXAS ---
+        function abrirCaixaPrompt(titulo, texto, valorPadrao, acaoAoConfirmar) {
+            document.getElementById('tituloPrompt').textContent = titulo;
+            document.getElementById('textoPrompt').textContent = texto;
+            document.getElementById('campoValor').value = valorPadrao;
+            valorPadraoModal = valorPadrao;
+            funcaoConfirmar = acaoAoConfirmar;
+            document.getElementById('modalPrompt').style.display = 'flex';
+        }
+        function confirmarPrompt() {
+            const valor = document.getElementById('campoValor').value;
+            fecharModal();
+            funcaoConfirmar(valor);
+        }
+        function fecharModal() {
+            document.getElementById('modalPrompt').style.display = 'none';
+        }
+        function abrirCaixaAlerta(texto) {
+            document.getElementById('textoAlerta').textContent = texto;
+            document.getElementById('modalAlerta').style.display = 'flex';
+        }
+        function fecharAlerta() {
+            document.getElementById('modalAlerta').style.display = 'none';
+        }
+
+
+        // --- SONS E VOZ FEMININA GARANTIDA ---
+        function tocarBipeNormal() {
+            const aviso = new AudioContext();
+            const som = aviso.createOscillator();
+            const volume = aviso.createGain();
+            som.connect(volume);
+            volume.connect(aviso.destination);
+            som.type = 'sine';
+            som.frequency.value = 800;
+            volume.gain.value = 0.4;
+            som.start();
+            setTimeout(() => som.stop(), 250);
+        }
+        function tocarBipeFinal() {
+            const aviso = new AudioContext();
+            const som = aviso.createOscillator();
+            const volume = aviso.createGain();
+            som.connect(volume);
+            volume.connect(aviso.destination);
+            som.type = 'triangle';
+            som.frequency.value = 1100;
+            volume.gain.value = 0.6;
+            som.start();
+            setTimeout(() => som.stop(), 600);
+        }
+        function falarFimDescanso() {
+            // SÓ FALA SE ESTIVER LIGADO
+            if (vozAtiva && 'speechSynthesis' in window) {
+                // Para qualquer fala anterior e garante voz feminina
+                window.speechSynthesis.cancel();
+                
+                const fala = new SpeechSynthesisUtterance();
+                fala.text = "Fim do descanso!";
+                fala.lang = "pt-BR";
+                fala.volume = 1;
+                fala.rate = 1.05;
+                fala.pitch = 1.4; // Tom bem mais feminino
+                
+                // Tenta escolher uma voz feminina do sistema
+                const vozes = window.speechSynthesis.getVoices();
+                const vozFeminina = vozes.find(v => 
+                    v.lang.includes('pt') && v.name.match(/([Ff]eminina|[Ff]emale|Sara|Mariana|Luciana|Ana)/)
+                );
+                if (vozFeminina) fala.voice = vozFeminina;
+                
+                // Se as vozes ainda não carregaram, espera um pouco
+                if (vozes.length === 0) {
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        const listaVozes = window.speechSynthesis.getVoices();
+                        const vf = listaVozes.find(v => 
+                            v.lang.includes('pt') && v.name.match(/([Ff]eminina|[Ff]emale|Sara|Mariana|Luciana|Ana)/)
+                        );
+                        if (vf) fala.voice = vf;
+                        window.speechSynthesis.speak(fala);
+                    };
+                } else {
+                    window.speechSynthesis.speak(fala);
+                }
+            }
+        }
+
+
+        // --- CONFIGURAÇÕES ---
+        function escolherSeries() {
+            if (rodando) return;
+            abrirCaixaPrompt("Quantidade de Séries", "Digite quantas séries deseja fazer:", totalSeries, function(valor) {
+                let qtd = parseInt(valor);
+                if (!isNaN(qtd) && qtd > 0 && qtd <= 20) {
+                    totalSeries = qtd;
+                    serieAtual = 1;
+                    atualizarTela();
+                } else {
+                    abrirCaixaAlerta("Digite um número entre 1 e 20!");
+                }
+            });
+        }
+        function escolherTempo() {
+            if (rodando) return;
+            abrirCaixaPrompt("Tempo de Descanso", "Digite o tempo em segundos:", tempoTotal, function(valor) {
+                let seg = parseInt(valor);
+                if (!isNaN(seg) && seg > 0 && seg <= 600) {
+                    tempoTotal = seg;
+                    tempoRestante = seg;
+                    atualizarTela();
+                } else {
+                    abrirCaixaAlerta("Digite um número entre 1 e 600 segundos!");
+                }
+            });
+        }
+
+        function atualizarCirculo() {
+            const progresso = tempoRestante / tempoTotal;
+            circulo.style.strokeDashoffset = circunferencia * (1 - progresso);
+        }
+        function atualizarTela() {
+            const elSerie = document.getElementById('textoSerie');
+            
+            elSerie.classList.remove('ultima', 'concluido');
+            if (serieAtual === totalSeries) {
+                elSerie.textContent = `${totalSeries}ª serie - ÚLTIMA!`;
+                elSerie.classList.add('ultima');
+                document.getElementById('infoAcao').textContent = 'Atenção: última serie!';
+            } else {
+                elSerie.textContent = `${serieAtual}ª serie`;
+                document.getElementById('infoAcao').textContent = rodando ? 'Descanso em andamento...' : 'Clique para iniciar o descanso';
+            }
+            const min = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+            const seg = (tempoRestante % 60).toString().padStart(2, '0');
+            document.getElementById('cronometro').textContent = `${min}:${seg}`;
+            atualizarCirculo();
+        }
+
+        function iniciarDescanso() {
+            if (rodando) return;
+            rodando = true;
+            tempoRestante = tempoTotal;
+            fraseFinal.style.display = 'none';
+            clearTimeout(temporizadorFrase);
+            atualizarTela();
+            document.getElementById('btnIniciar').disabled = true;
+
+            temporizador = setInterval(() => {
+                tempoRestante--;
+                if (tempoRestante === 3 || tempoRestante === 2 || tempoRestante === 1) {
+                    tocarBipeNormal();
+                }
+                atualizarTela();
+
+                if (tempoRestante <= 0) {
+                    clearInterval(temporizador);
+                    rodando = false;
+                    tocarBipeFinal();
+                    setTimeout(() => falarFimDescanso(), 700);
+                    
+                    if (serieAtual < totalSeries) {
+                        serieAtual++;
+                        document.getElementById('infoAcao').textContent = `Descanso terminado! Clique para ${serieAtual}ª serie`;
+                        document.getElementById('btnIniciar').disabled = false;
+                        atualizarTela();
+                    } else {
+                        fraseFinal.style.display = 'block';
+                        temporizadorFrase = setTimeout(() => {
+                            fraseFinal.style.display = 'none';
+                            serieAtual = 1;
+                            tempoRestante = tempoTotal;
+                            document.getElementById('infoAcao').textContent = 'Clique para começar novamente!';
+                            document.getElementById('btnIniciar').disabled = false;
+                            atualizarTela();
+                        }, 10000);
+                    }
+                }
+            }, 1000);
+        }
+
+        function reiniciarTudo() {
+            clearInterval(temporizador);
+            clearTimeout(temporizadorFrase);
+            rodando = false;
+            fraseFinal.style.display = 'none';
+            serieAtual = 1;
+            tempoRestante = tempoTotal;
+            atualizarTela();
+            document.getElementById('btnIniciar').disabled = false;
+        }
+
+        atualizarTela();
+    </script>
+</body>
+</html>
